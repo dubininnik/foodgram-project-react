@@ -131,7 +131,3 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'email",'
 }
-
-CORS_ORIGIN_ALLOW_ALL = True
-
-CORS_URLS_REGEX = r'^/api/.*$'

@@ -30,7 +30,7 @@ class UserReadSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'first_name',
-                  'last_name', 'password')
+                  'last_name', 'password', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')

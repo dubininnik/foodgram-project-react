@@ -25,7 +25,7 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
     @staticmethod
-    def added_to_favorite(self, obj):
+    def added_to_favorite(obj):
         return obj.favorite.count()
 
 

@@ -17,7 +17,7 @@ services:
       - pg_data:/var/lib/postgresql/data/
   backend:
     container_name: foodgram-backend
-    image: nikdubinin/foodgram-backend
+    image: nikdubinin/foodgram_backend
     env_file: .env
     restart: always
     volumes:
@@ -27,7 +27,7 @@ services:
       - db
   frontend:
     container_name: foodgram-frontend
-    image: nikdubinin/foodgram-frontend
+    image: nikdubinin/foodgram_frontend
     volumes:
       - ./frontend/:/app/result_build/
     depends_on:

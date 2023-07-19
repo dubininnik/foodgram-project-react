@@ -26,7 +26,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @staticmethod
     def added_to_favorite(obj):
-        return obj.favorite.count()
+        return obj.favorite_recipe.count()
 
 
 @admin.register(models.RecipeIngredient)
@@ -37,7 +37,7 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 
     @staticmethod
     def added_to_favorite(obj):
-        return obj.favorite.count()
+        return obj.favorite_recipe.count()
 
 
 @admin.register(models.Favorite)

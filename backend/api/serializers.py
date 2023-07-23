@@ -67,7 +67,10 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
                   'last_name', 'recipes', 'recipes_count', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        return obj
+        request = self.context.get('request')
+        if not request.user.is_authenticated:
+            return False
+        return Subscribe.objects.filter(user=request.user, author=obj).exists()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -186,11 +189,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """[POST, PATCH, DELETE] Создание, изменение и удаление рецепта."""
     tags = serializers.PrimaryKeyRelatedField(
+        many=True,
         queryset=Tag.objects.all(),
         write_only=True
     )
     author = UserReadSerializer(read_only=True)
     ingredients = serializers.PrimaryKeyRelatedField(
+        many=True,
         queryset=Ingredient.objects.all(),
         write_only=True
     )
@@ -217,9 +222,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         return attrs
 
+    @transaction.atomic
     def set_recipe_tags(self, recipe, tags):
         recipe.tags.set(tags)
 
+    @transaction.atomic
     def set_recipe_ingredients(self, recipe, ingredients):
         RecipeIngredient.objects.filter(recipe=recipe).delete()
         recipe_ingredients = [
@@ -250,6 +257,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         self.set_recipe_tags(instance, tags)
         self.set_recipe_ingredients(instance, ingredients)
         return instance
+
+    def validate(self, attrs):
+        self.tag_validate(attrs)
+        self.ingredient_validate(attrs)
+        return attrs
 
     def to_representation(self, instance):
         return RecipeReadSerializer(instance, context=self.context).data

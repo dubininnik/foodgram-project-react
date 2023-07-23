@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from . import models
 
@@ -22,11 +23,14 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'text', 'added_to_favorite')
     list_filter = ('author', 'name', 'tags')
     readonly_fields = ('added_to_favorite',)
-    empty_value_display = '-пусто-'
 
-    @staticmethod
-    def added_to_favorite(obj):
-        return obj.favorite_recipe.count()
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(favorite_count=Count('favorite_recipe'))
+
+    def added_to_favorite(self, recipe):
+        return recipe.favorite_count
+    added_to_favorite.admin_order_field = 'favorite_count'
 
 
 @admin.register(models.RecipeIngredient)
@@ -34,10 +38,6 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = ('pk', 'recipe', 'ingredient', 'amount')
     list_filter = ('recipe', 'ingredient')
     search_fields = ('recipe', 'ingredient')
-
-    @staticmethod
-    def added_to_favorite(obj):
-        return obj.favorite_recipe.count()
 
 
 @admin.register(models.Favorite)

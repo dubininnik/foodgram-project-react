@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEFAULT_PAGE_SIZE = 6
+
+USER_FIELD_LEN = 150
+
+EMPTY_VALUE_DISPLAY = '-пусто-'
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -23,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_yasg',
     'django_filters',
     'djoser',
     'api',
@@ -130,4 +137,24 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserReadSerializer',
+        'user_create': 'api.serializers.CustomUserCreateSerializer',
+        'user_delete': 'djoser.serializers.UserDeleteSerializer',
+        'set_password': 'api.serializers.CustomSetPasswordSerializer',
+        'current_user': 'djoser.serializers.UserSerializer',
+    },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'set_password': ['rest_framework.permissions.IsAuthenticated'],
+        'reset_password': ['rest_framework.permissions.AllowAny'],
+        'reset_password_confirm': ['rest_framework.permissions.AllowAny'],
+        'username_reset': ['rest_framework.permissions.AllowAny'],
+        'username_reset_confirm': ['rest_framework.permissions.AllowAny'],
+        'activate': ['rest_framework.permissions.AllowAny'],
+        'resend_activation': ['rest_framework.permissions.AllowAny'],
+        'me': ['rest_framework.permissions.IsAuthenticated'],
+        'is_author_or_admin_or_read_only': ['api.permissions.IsAuthorOrAdminOrReadOnly'],
+    }
 }

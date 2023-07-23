@@ -186,13 +186,11 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """[POST, PATCH, DELETE] Создание, изменение и удаление рецепта."""
     tags = serializers.PrimaryKeyRelatedField(
-        many=True,
         queryset=Tag.objects.all(),
         write_only=True
     )
     author = UserReadSerializer(read_only=True)
     ingredients = serializers.PrimaryKeyRelatedField(
-        many=True,
         queryset=Ingredient.objects.all(),
         write_only=True
     )

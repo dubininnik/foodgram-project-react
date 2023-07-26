@@ -18,12 +18,12 @@ def validate_username(username):
 def validate_cooking_time(cooking_time):
     if cooking_time < MIN_COOKING_TIME:
         raise ValidationError('Время приготовления должно быть больше 0.')
-    elif cooking_time > MAX_COOKING_TIME:
+    if cooking_time > MAX_COOKING_TIME:
         raise ValidationError('За такое время сгорит все что угодно.')
 
 
 def validate_ingredient_amount(ingredient_amount):
     if ingredient_amount < MIN_INGREDIENT_AMOUNT:
         raise ValidationError('Количество ингредиента должно быть больше 0.')
-    elif ingredient_amount > MAX_INGREDIENT_AMOUNT:
+    if ingredient_amount > MAX_INGREDIENT_AMOUNT:
         raise ValidationError('А не слипнется? Многовато ингредиента.')

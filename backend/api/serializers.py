@@ -218,8 +218,5 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['ingredients'] = IngredientSerializer(
-            instance.ingredients.all(),
-            many=True
-        ).data
+        data['ingredients'] = instance.ingredients.values_list('id', flat=True)
         return data

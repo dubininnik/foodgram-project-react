@@ -32,7 +32,7 @@ class UserViewSet(DjoserViewSet, FavoriteMixin):
     @action(detail=True,
             methods=['delete'],
             permission_classes=[IsAuthenticated])
-    def favorite(self, request, **kwargs):
+    def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         return self.delete_favorite_and_cart(request, recipe)
 
@@ -64,7 +64,7 @@ class UserViewSet(DjoserViewSet, FavoriteMixin):
     @action(detail=True,
             methods=['delete'],
             permission_classes=[IsAuthenticated])
-    def subscribe(self, request, pk=None):
+    def unsubscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
         subscription = get_object_or_404(Subscribe,
                                          user=request.user,
@@ -105,7 +105,7 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteMixin, ShoppingCartMixin):
     @action(detail=True,
             methods=['delete'],
             permission_classes=(IsAuthenticated,))
-    def favorite(self, request, **kwargs):
+    def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         return self.delete_favorite_and_cart(request, recipe)
 
@@ -119,7 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteMixin, ShoppingCartMixin):
     @action(detail=True,
             methods=['delete'],
             permission_classes=(IsAuthenticated,))
-    def shopping_cart(self, request, pk=None):
+    def remove_from_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
         return self.delete_favorite_and_cart(request, recipe)
 

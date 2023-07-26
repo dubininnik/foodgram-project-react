@@ -1,19 +1,15 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.exceptions import ValidationError
 from django.db import models
 
-
-def validate_username(value):
-    inappropriate_usernames = ['admin', 'root', 'superuser']
-    if value.lower() in inappropriate_usernames:
-        raise ValidationError('Этот логин не приветствуется')
+from foodgram.settings import DEFAULT_MAX_LENGTH
+from foodgram.validators import validate_username
 
 
 class User(AbstractUser):
     email = models.EmailField(
-        max_length=254,
+        max_length=DEFAULT_MAX_LENGTH,
         unique=True,
         verbose_name='E-mail',
         help_text='Введите адрес электронной почты',
@@ -28,18 +24,21 @@ class User(AbstractUser):
         max_length=settings.USER_FIELD_LEN,
         verbose_name='Имя',
         blank=False,
+        null=False,
         help_text='Введите имя',
     )
     last_name = models.CharField(
         max_length=settings.USER_FIELD_LEN,
         verbose_name='Фамилия',
         blank=False,
+        null=False,
         help_text='Введите фамилию',
     )
     password = models.CharField(
         max_length=settings.USER_FIELD_LEN,
         verbose_name='Пароль',
         blank=False,
+        null=False,
     )
 
     class Meta:
@@ -73,12 +72,12 @@ class Subscribe(models.Model):
             models.UniqueConstraint(
                 fields=('user', 'author'),
                 name='unique_subscribe',
-            )
+            ),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('author')),
+                name='subscribe_user_not_author',
+            ),
         ]
 
     def __str__(self):
-        return self.author.username
-
-    def clean(self):
-        if self.user == self.author:
-            raise ValidationError('Нельзя подписаться на себя.')
+        return f'{self.user.username} подписан на {self.author.username}'

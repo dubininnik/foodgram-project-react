@@ -8,6 +8,22 @@ load_dotenv()
 
 DEFAULT_PAGE_SIZE = 6
 
+DEFAULT_MAX_LENGTH = 200
+
+DEFAULT_MAX_LENGTH_TAG_NAME = 50
+
+DEFAULT_MAX_LENGTH_TAG_COLOR = 7
+
+MIN_COOKING_TIME = 1
+
+MAX_COOKING_TIME = 120
+
+MIN_INGREDIENT_AMOUNT = 1
+
+MAX_INGREDIENT_AMOUNT = 500
+
+INAPPROPRIATE_USERNAME = 'admin,root,superuser,administrator,moderator'
+
 USER_FIELD_LEN = 150
 
 EMPTY_VALUE_DISPLAY = '-пусто-'
@@ -141,7 +157,7 @@ DJOSER = {
         'user': 'api.serializers.UserReadSerializer',
         'user_create': 'api.serializers.CustomUserCreateSerializer',
         'user_delete': 'djoser.serializers.UserDeleteSerializer',
-        'set_password': 'api.serializers.CustomSetPasswordSerializer',
+        'set_password': 'djoser.serializers.SetPasswordSerializer',
         'current_user': 'djoser.serializers.UserSerializer',
     },
     'PERMISSIONS': {

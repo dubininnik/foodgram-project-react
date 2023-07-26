@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.db.models import Count
 
 from . import models
 
@@ -20,17 +19,13 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(models.Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'text', 'added_to_favorite')
+    list_display = ('name', 'author', 'text', 'favorite_count')
     list_filter = ('author', 'name', 'tags')
-    readonly_fields = ('added_to_favorite',)
+    readonly_fields = ('favorite_count',)
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.annotate(favorite_count=Count('favorite_recipe'))
-
-    def added_to_favorite(self, recipe):
-        return recipe.favorite_count
-    added_to_favorite.admin_order_field = 'favorite_count'
+    def favorite_count(self, recipe):
+        return recipe.favorite_recipe.count()
+    favorite_count.admin_order_field = 'favorite_recipe__count'
 
 
 @admin.register(models.RecipeIngredient)

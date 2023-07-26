@@ -158,10 +158,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
     )
     author = UserReadSerializer(read_only=True)
-    ingredients = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Ingredient.objects.all(),
-    )
+    ingredients = IngredientSerializer(many=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -190,8 +187,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        ingredient_ids = [item.id for item in ingredients]
-        if len(ingredient_ids) != len(set(ingredient_ids)):
+        ingredient_names = [item['name'] for item in ingredients]
+        if len(ingredient_names) != len(set(ingredient_names)):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'
             )
@@ -200,7 +197,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
+        ingredients_data = validated_data.pop('ingredients')
+        ingredients = []
+        for ingredient_data in ingredients_data:
+            ingredient, _ = Ingredient.objects.get_or_create(**ingredient_data)
+            ingredients.append(ingredient)
         recipe = Recipe.objects.create(
             author=self.context['request'].user,
             **validated_data)
@@ -211,7 +212,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
+        ingredients_data = validated_data.pop('ingredients')
+        ingredients = []
+        for ingredient_data in ingredients_data:
+            ingredient, _ = Ingredient.objects.get_or_create(**ingredient_data)
+            ingredients.append(ingredient)
         instance.tags.set(tags)
         instance.ingredients.set(ingredients)
         return super().update(instance, validated_data)

@@ -78,6 +78,7 @@ class IngredientViewSet(ListRetrieveViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = (IngredientFilter,)
+    search_fields = ('^name',)  # Нельзя не прописывать- поиск не пашет.
     permission_classes = (AllowAny, IsAuthorOrAdminOrReadOnly)
 
 

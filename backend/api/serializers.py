@@ -187,7 +187,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        ingredient_names = [item['name'] for item in ingredients]
+        ingredient_names = [item['ingredient']['name'] for item in ingredients]
         if len(ingredient_names) != len(set(ingredient_names)):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'

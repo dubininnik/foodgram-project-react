@@ -10,7 +10,8 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import CreateDeleteMixin
 from .permissions import IsAuthorOrAdminOrReadOnly
-from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          RecipeCreateSerializer, ShoppingCartSerializer,
                           SubscribeAuthorSerializer, SubscriptionsSerializer,
                           TagSerializer)
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
@@ -86,28 +87,28 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        return self.create(request, self.serializer_class, recipe)
+        return self.create(request, FavoriteSerializer, recipe)
 
     @action(detail=True,
             methods=['delete'],
             permission_classes=(IsAuthenticated,))
     def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        return self.delete(request, self.serializer_class, recipe)
+        return self.delete(request, FavoriteSerializer, recipe)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        return self.create(request, self.serializer_class, recipe)
+        return self.create(request, ShoppingCartSerializer, recipe)
 
     @action(detail=True,
             methods=['delete'],
             permission_classes=(IsAuthenticated,))
     def remove_from_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        return self.delete(request, self.serializer_class, recipe)
+        return self.delete(request, ShoppingCartSerializer, recipe)
 
     @action(detail=False,
             methods=['get'],

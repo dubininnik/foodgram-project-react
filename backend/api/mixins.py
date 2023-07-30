@@ -1,45 +1,26 @@
-from rest_framework import mixins, status, viewsets
+from rest_framework import status
 from rest_framework.response import Response
 
-from .serializers import RecipeSerializer
 
+class CreateDeleteMixin:
+    def create(self, request, serializer_class, *args, **kwargs):
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            obj = serializer.save()
+            if not self.related_field.filter(user=request.user,
+                                             obj=obj).exists():
+                self.related_field.create(user=request.user, obj=obj)
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            return Response({'errors': 'Объект уже в избранном.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ListRetrieveViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet
-):
-    pass
-
-
-class FavoriteAndCartMixin:
-    related_field = None
-    serializer_class = RecipeSerializer
-
-    def create_favorite_and_cart(self, request, recipe):
-        if not self.related_field.filter(
-                user=request.user, recipe=recipe).exists():
-            self.related_field.create(user=request.user, recipe=recipe)
-            serializer = self.serializer_class(
-                recipe, context={'request': request})
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-        return Response(
-            {'errors': 'Рецепт уже в избранном.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def delete_favorite_and_cart(self, request, recipe):
-        self.related_field.filter(user=request.user, recipe=recipe).delete()
-        return Response(
-            {'detail': 'Рецепт успешно удален.'},
-            status=status.HTTP_204_NO_CONTENT
-        )
-
-
-class FavoriteMixin(FavoriteAndCartMixin):
-    related_field = 'favorite_recipe'
-
-
-class ShoppingCartMixin(FavoriteAndCartMixin):
-    related_field = 'shopping_recipe'
+    def delete(self, request, serializer_class, *args, **kwargs):
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            obj = serializer.save()
+            self.related_field.filter(user=request.user, obj=obj).delete()
+            return Response({'detail': 'Объект успешно удалён.'},
+                            status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

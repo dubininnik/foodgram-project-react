@@ -26,6 +26,10 @@ INAPPROPRIATE_USERNAME = 'admin,root,superuser,administrator,moderator'
 
 USER_FIELD_LEN = 150
 
+PATTERN = r'^[a-zA-Z0-9_-]+$'
+
+HEX_PATTERN = r'^#([a-fA-F0-9]{6})'
+
 EMPTY_VALUE_DISPLAY = '-пусто-'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -148,7 +152,6 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPaginator',
-    'SEARCH_PARAM': 'name',
 }
 
 DJOSER = {

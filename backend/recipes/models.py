@@ -1,21 +1,20 @@
-from django.core.validators import RegexValidator
+from django.conf import settings
+from django.core.validators import (MaxValueValidator,
+                                    MinValueValidator,
+                                    RegexValidator)
+from django.db import models
 from django.db import models
 
-from foodgram.settings import (DEFAULT_MAX_LENGTH,
-                               DEFAULT_MAX_LENGTH_TAG_NAME,
-                               DEFAULT_MAX_LENGTH_TAG_COLOR)
-from foodgram.validators import (validate_cooking_time,
-                                 validate_ingredient_amount)
 from users.models import User
 
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=DEFAULT_MAX_LENGTH,
+        max_length=settings.DEFAULT_MAX_LENGTH,
         verbose_name='Название ингридиента',
     )
     measurement_unit = models.CharField(
-        max_length=DEFAULT_MAX_LENGTH,
+        max_length=settings.DEFAULT_MAX_LENGTH,
         verbose_name='Единица измерения',
     )
 
@@ -36,22 +35,22 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=DEFAULT_MAX_LENGTH_TAG_NAME,
+        max_length=settings.DEFAULT_MAX_LENGTH_TAG_NAME,
         verbose_name='Название тега',
     )
     color = models.CharField(
-        max_length=DEFAULT_MAX_LENGTH_TAG_COLOR,
+        max_length=settings.DEFAULT_MAX_LENGTH_TAG_COLOR,
         unique=True,
         verbose_name='Цвет в HEX',
         validators=[
             RegexValidator(
-                '^#([a-fA-F0-9]{6})',
+                settings.HEX_PATTERN,
                 message='Поле должно содержать HEX цвета'
             )
         ]
     )
     slug = models.SlugField(
-        max_length=DEFAULT_MAX_LENGTH,
+        max_length=settings.DEFAULT_MAX_LENGTH,
         unique=True,
         verbose_name='Slug тэга',
     )
@@ -67,13 +66,11 @@ class Tag(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(
-        max_length=DEFAULT_MAX_LENGTH,
+        max_length=settings.DEFAULT_MAX_LENGTH,
         verbose_name='Название рецепта',
     )
     image = models.ImageField(
         upload_to='recipes/',
-        blank=False,
-        null=False,
         verbose_name='Изображение',
     )
     text = models.TextField(
@@ -90,7 +87,14 @@ class Recipe(models.Model):
         verbose_name='Теги'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        validators=[validate_cooking_time],
+        validators=[
+            MinValueValidator(settings.MIN_COOKING_TIME,
+                              message='Время приготовления должно'
+                              ' быть больше 0.'),
+            MaxValueValidator(settings.MAX_COOKING_TIME,
+                              message='За такое время сгорит все'
+                              ' что угодно.')
+        ],
         verbose_name='Время приготовления в минутах',
     )
     author = models.ForeignKey(
@@ -123,7 +127,14 @@ class RecipeIngredient(models.Model):
         verbose_name='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
-        validators=[validate_ingredient_amount],
+        validators=[
+            MinValueValidator(settings.MIN_INGREDIENT_AMOUNT,
+                              message='Количество ингредиента должно'
+                              ' быть больше 0.'),
+            MaxValueValidator(settings.MAX_INGREDIENT_AMOUNT,
+                              message='А не слипнется? Многовато'
+                              ' ингредиента.')
+        ],
         verbose_name='Количество',
     )
 
@@ -163,7 +174,7 @@ class AbstractFavoriteShoppingCart(models.Model):
         default_related_name = '%(class)s_recipe'
 
     def __str__(self):
-        return f'{self.user} - {self.recipe}'
+        return f'{self.user} - {self.recipe} [{self._meta.verbose_name}]'
 
 
 class Favorite(AbstractFavoriteShoppingCart):
@@ -171,14 +182,8 @@ class Favorite(AbstractFavoriteShoppingCart):
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
 
-    def __str__(self):
-        return f'{super().__str__()} [Избранное]'
-
 
 class ShoppingCart(AbstractFavoriteShoppingCart):
     class Meta(AbstractFavoriteShoppingCart.Meta):
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
-
-    def __str__(self):
-        return f'{super().__str__()} [Список покупок]'

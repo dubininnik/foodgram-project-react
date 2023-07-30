@@ -3,13 +3,12 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
-from foodgram.settings import DEFAULT_MAX_LENGTH
 from foodgram.validators import validate_username
 
 
 class User(AbstractUser):
     email = models.EmailField(
-        max_length=DEFAULT_MAX_LENGTH,
+        max_length=settings.DEFAULT_MAX_LENGTH,
         unique=True,
         verbose_name='E-mail',
         help_text='Введите адрес электронной почты',
@@ -23,22 +22,16 @@ class User(AbstractUser):
     first_name = models.CharField(
         max_length=settings.USER_FIELD_LEN,
         verbose_name='Имя',
-        blank=False,
-        null=False,
         help_text='Введите имя',
     )
     last_name = models.CharField(
         max_length=settings.USER_FIELD_LEN,
         verbose_name='Фамилия',
-        blank=False,
-        null=False,
         help_text='Введите фамилию',
     )
     password = models.CharField(
         max_length=settings.USER_FIELD_LEN,
         verbose_name='Пароль',
-        blank=False,
-        null=False,
     )
 
     class Meta:
@@ -80,4 +73,4 @@ class Subscribe(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user.username} подписан на {self.author.username}'
+        return f'{self.user} подписан на {self.author.username}'

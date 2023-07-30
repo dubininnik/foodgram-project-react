@@ -3,8 +3,8 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (Ingredient, Recipe,
-                            RecipeIngredient, Tag)
+from recipes.models import (Favorite, Ingredient, ShoppingCart,
+                            Recipe, RecipeIngredient, Tag)
 from users.models import User
 
 
@@ -60,6 +60,20 @@ class SubscriptionsSerializer(UserReadSerializer):
             recipes = recipes[:int(limit)]
         serializer = RecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """[GET] Список избранного."""
+    class Meta:
+        model = Favorite
+        fields = ('id', 'user', 'recipe')
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """[GET] Список содержимого корзины покупок."""
+    class Meta:
+        model = ShoppingCart
+        fields = ('id', 'user', 'recipe')
 
 
 class SubscribeAuthorSerializer(serializers.ModelSerializer):
@@ -127,29 +141,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-class RecipeDetailSerializer(serializers.ModelSerializer):
-    """[GET]Полная информация о рецепте."""
-    tags = TagSerializer(many=True)
-    author = UserReadSerializer()
-    ingredients = IngredientSerializer(many=True)
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart',
-                  'name', 'image', 'text', 'cooking_time')
-
-    def get_is_favorited(self, obj):
-        user = self.context.get('request').user
-        return obj.favorite_recipe.filter(user=user).exists()
-
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
-        return obj.shoppingcart_recipe.filter(user=user).exists()
-
-
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """[GET, POST, PATCH, DELETE]Чтение, создание,
     изменение, удаление рецепта."""
@@ -196,30 +187,32 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-        ingredients = []
-        for ingredient_data in ingredients_data:
-            ingredient = Ingredient.objects.get(id=ingredient_data['id'])
-            ingredients.append(ingredient)
+        tags = validated_data.get('tags', [])
+        ingredients_data = validated_data.get('ingredients', [])
+        ingredient_ids = [ingredient_data['id'] for
+                          ingredient_data in ingredients_data]
+        ingredients = Ingredient.objects.filter(id__in=ingredient_ids)
         recipe = Recipe.objects.create(
             author=self.context['request'].user,
-            **validated_data)
-        recipe.tags.set(tags)
-        recipe.ingredients.set(ingredients)
+            name=validated_data['name'],
+            description=validated_data['description'],
+        )
+        recipe.tags.add(*tags)
+        recipe.ingredients.add(*ingredients)
         return recipe
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-        ingredients = []
-        for ingredient_data in ingredients_data:
-            ingredient = Ingredient.objects.get(id=ingredient_data['id'])
-            ingredients.append(ingredient)
-        instance.tags.set(tags)
-        instance.ingredients.set(ingredients)
-        return super().update(instance, validated_data)
+        tags = validated_data.get('tags', [])
+        ingredients_data = validated_data.get('ingredients', [])
+        ingredient_ids = [ingredient_data['id'] for
+                          ingredient_data in ingredients_data]
+        ingredients = Ingredient.objects.filter(id__in=ingredient_ids)
+        instance.tags.clear()
+        instance.tags.add(*tags)
+        instance.ingredients.clear()
+        instance.ingredients.add(*ingredients)
+        return instance
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

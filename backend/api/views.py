@@ -85,36 +85,44 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer_class = FavoriteSerializer(recipe,
-                                              data=request.data,
-                                              context={'request': request})
-        return self.create(request, serializer_class, recipe)
+        serializer = FavoriteSerializer(
+            recipe,
+            data=request.data,
+            context={'request': request}
+        )
+        return self.create(request, serializer)
 
     @favorite.mapping.delete
     def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer_class = FavoriteSerializer(recipe,
-                                              data=request.data,
-                                              context={'request': request})
-        return self.delete(request, serializer_class, recipe)
+        serializer = FavoriteSerializer(
+            recipe,
+            data=request.data,
+            context={'request': request}
+        )
+        return self.delete(request, serializer)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer_class = ShoppingCartSerializer(recipe,
-                                                  data=request.data,
-                                                  context={'request': request})
-        return self.create(request, serializer_class, recipe)
+        serializer = ShoppingCartSerializer(
+            recipe,
+            data=request.data,
+            context={'request': request}
+        )
+        return self.create(request, serializer)
 
     @shopping_cart.mapping.delete
     def remove_from_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer_class = ShoppingCartSerializer(recipe,
-                                                  data=request.data,
-                                                  context={'request': request})
-        return self.delete(request, serializer_class, recipe)
+        serializer = ShoppingCartSerializer(
+            recipe,
+            data=request.data,
+            context={'request': request}
+        )
+        return self.delete(request, serializer)
 
     @action(detail=False,
             methods=['get'],

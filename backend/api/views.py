@@ -38,23 +38,26 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
-        serializer = SubscribeAuthorSerializer(author,
-                                               data=request.data,
-                                               context={'request': request}
-                                               )
+        serializer_class = SubscribeAuthorSerializer(
+            author,
+            data=request.data,
+            context={'request': request}
+        )
         return self.create(request,
-                           serializer,
+                           serializer_class,
                            related_field=Subscribe.objects,
                            obj=author)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
-        serializer = SubscribeAuthorSerializer(author,
-                                               data=request.data,
-                                               context={'request': request})
+        serializer_class = SubscribeAuthorSerializer(
+            author,
+            data=request.data,
+            context={'request': request}
+        )
         return self.delete(request,
-                           serializer,
+                           serializer_class,
                            related_field=Subscribe.objects,
                            obj=author)
 
@@ -64,6 +67,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = (IngredientFilter,)
+    search_fields = ('^name',)  # Работает только так :(
     permission_classes = (AllowAny, IsAuthorOrAdminOrReadOnly)
 
 
@@ -85,44 +89,44 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer = FavoriteSerializer(
+        serializer_class = FavoriteSerializer(
             recipe,
             data=request.data,
             context={'request': request}
         )
-        return self.create(request, serializer)
+        return self.create(request, serializer_class)
 
     @favorite.mapping.delete
     def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer = FavoriteSerializer(
+        serializer_class = FavoriteSerializer(
             recipe,
             data=request.data,
             context={'request': request}
         )
-        return self.delete(request, serializer)
+        return self.delete(request, serializer_class)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer = ShoppingCartSerializer(
+        serializer_class = ShoppingCartSerializer(
             recipe,
             data=request.data,
             context={'request': request}
         )
-        return self.create(request, serializer)
+        return self.create(request, serializer_class)
 
     @shopping_cart.mapping.delete
     def remove_from_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer = ShoppingCartSerializer(
+        serializer_class = ShoppingCartSerializer(
             recipe,
             data=request.data,
             context={'request': request}
         )
-        return self.delete(request, serializer)
+        return self.delete(request, serializer_class)
 
     @action(detail=False,
             methods=['get'],

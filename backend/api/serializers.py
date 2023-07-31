@@ -168,22 +168,22 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         return obj.shoppingcart_recipe.filter(user=user).exists()
 
-    def validate_tags(self, attrs):
-        if not attrs.get('tags'):
+    def validate_tags(self, tags):
+        if not tags:
             raise serializers.ValidationError('Нужно указать минимум 1 тег.')
-        return attrs
+        return tags
 
-    def validate_ingredients(self, attrs):
-        if not attrs.get('ingredients'):
+    def validate_ingredients(self, ingredients):
+        if not ingredients:
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        ingredient_ids = [item['id'] for item in attrs.get('ingredients')]
+        ingredient_ids = [item['id'] for item in ingredients]
         if len(ingredient_ids) != len(set(ingredient_ids)):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'
             )
-        return attrs
+        return ingredients
 
     @transaction.atomic
     def create(self, validated_data):

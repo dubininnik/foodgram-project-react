@@ -117,16 +117,14 @@ class IngredientSerializer(serializers.ModelSerializer):
     """[GET] Список ингредиентов."""
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurement_unit')
-        read_only_fields = ('id', 'name', 'measurement_unit')
+        fields = '__all__'
 
 
 class TagSerializer(serializers.ModelSerializer):
     """[GET] Список тегов."""
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'color', 'slug')
-        read_only_fields = ('id', 'name', 'color', 'slug')
+        fields = '__all__'
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -178,7 +176,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        ingredient_ids = [item['pk'] for item in ingredients]
+        ingredient_ids = [item['id'] for item in ingredients]
         if len(ingredient_ids) != len(set(ingredient_ids)):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'
@@ -189,7 +187,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.get('tags', [])
         ingredients_data = validated_data.get('ingredients', [])
-        ingredient_ids = [ingredient_data['pk'] for
+        ingredient_ids = [ingredient_data['id'] for
                           ingredient_data in ingredients_data]
         ingredients = Ingredient.objects.filter(id__in=ingredient_ids)
         recipe = Recipe.objects.create(
@@ -205,7 +203,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.get('tags', [])
         ingredients_data = validated_data.get('ingredients', [])
-        ingredient_ids = [ingredient_data['pk'] for
+        ingredient_ids = [ingredient_data['id'] for
                           ingredient_data in ingredients_data]
         ingredients = Ingredient.objects.filter(id__in=ingredient_ids)
         instance.tags.clear()
@@ -216,5 +214,5 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['ingredients'] = instance.ingredients.values_list('pk', flat=True)
+        data['ingredients'] = instance.ingredients.values_list('id', flat=True)
         return data

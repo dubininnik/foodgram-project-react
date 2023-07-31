@@ -101,7 +101,8 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
         if recipe is None:
             return Response({'error': 'Recipe does not exist'},
                             status=status.HTTP_404_NOT_FOUND)
-        serializer = FavoriteSerializer(data=request.data)
+        serializer = FavoriteSerializer(recipe,
+                                        context={'request': request})
         related_obj = recipe.favorite_recipe
         return self.create(request=request,
                            serializer=serializer,
@@ -113,7 +114,8 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
         if recipe is None:
             return Response({'error': 'Recipe does not exist'},
                             status=status.HTTP_404_NOT_FOUND)
-        serializer = FavoriteSerializer(data=request.data)
+        serializer = FavoriteSerializer(recipe,
+                                        context={'request': request})
         related_obj = recipe.favorite_recipe
         return self.delete(request=request,
                            serializer=serializer,
@@ -127,7 +129,8 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
         if recipe is None:
             return Response({'error': 'Recipe does not exist'},
                             status=status.HTTP_404_NOT_FOUND)
-        serializer = ShoppingCartSerializer(data=request.data)
+        serializer = ShoppingCartSerializer(recipe,
+                                            context={'request': request})
         related_obj = recipe.shoppingcart_recipe
         return self.create(request=request,
                            serializer=serializer,
@@ -139,7 +142,8 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
         if recipe is None:
             return Response({'error': 'Recipe does not exist'},
                             status=status.HTTP_404_NOT_FOUND)
-        serializer = ShoppingCartSerializer(data=request.data)
+        serializer = ShoppingCartSerializer(recipe,
+                                            context={'request': request})
         related_obj = recipe.shoppingcart_recipe
         return self.delete(request=request,
                            serializer=serializer,

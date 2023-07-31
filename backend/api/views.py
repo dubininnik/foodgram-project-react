@@ -2,16 +2,16 @@ from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserViewSet
-from rest_framework import filters, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import CreateDeleteMixin
 from .permissions import IsAuthorOrAdminOrReadOnly
-from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeCreateSerializer, ShoppingCartSerializer,
+from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           SubscribeAuthorSerializer, SubscriptionsSerializer,
                           TagSerializer)
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
@@ -89,44 +89,48 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer_class = FavoriteSerializer(
-            recipe,
+        serializer = self.get_serializer(
             data=request.data,
-            context={'request': request}
+            context={'request': request, 'recipe': recipe}
         )
-        return self.create(request, serializer_class)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @favorite.mapping.delete
     def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer_class = FavoriteSerializer(
-            recipe,
+        serializer = self.get_serializer(
             data=request.data,
-            context={'request': request}
+            context={'request': request, 'recipe': recipe}
         )
-        return self.delete(request, serializer_class)
+        serializer.is_valid(raise_exception=True)
+        self.perform_destroy(serializer)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer_class = ShoppingCartSerializer(
-            recipe,
+        serializer = self.get_serializer(
             data=request.data,
-            context={'request': request}
+            context={'request': request, 'recipe': recipe}
         )
-        return self.create(request, serializer_class)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @shopping_cart.mapping.delete
     def remove_from_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
-        serializer_class = ShoppingCartSerializer(
-            recipe,
+        serializer = self.get_serializer(
             data=request.data,
-            context={'request': request}
+            context={'request': request, 'recipe': recipe}
         )
-        return self.delete(request, serializer_class)
+        serializer.is_valid(raise_exception=True)
+        self.perform_destroy(serializer)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             methods=['get'],

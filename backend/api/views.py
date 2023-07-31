@@ -38,27 +38,27 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
-        serializer_class = SubscribeAuthorSerializer(
+        serializer = SubscribeAuthorSerializer(
             author,
             data=request.data,
             context={'request': request}
         )
         return self.create(request,
-                           serializer_class,
-                           related_field=Subscribe.objects,
+                           serializer,
+                           related_obj=Subscribe.objects,
                            obj=author)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
-        serializer_class = SubscribeAuthorSerializer(
+        serializer = SubscribeAuthorSerializer(
             author,
             data=request.data,
             context={'request': request}
         )
         return self.delete(request,
-                           serializer_class,
-                           related_field=Subscribe.objects,
+                           serializer,
+                           related_obj=Subscribe.objects,
                            obj=author)
 
 
@@ -91,14 +91,18 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         serializer = FavoriteSerializer(data=request.data)
         related_obj = recipe.favorite_recipe
-        return self.create(request, serializer, related_obj)
+        return self.create(request=request,
+                           serializer=serializer,
+                           related_obj=related_obj)
 
     @favorite.mapping.delete
     def unfavorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         serializer = FavoriteSerializer(data=request.data)
         related_obj = recipe.favorite_recipe
-        return self.delete(request, serializer, related_obj)
+        return self.delete(request=request,
+                           serializer=serializer,
+                           related_obj=related_obj)
 
     @action(detail=True,
             methods=['post'],
@@ -107,14 +111,18 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = ShoppingCartSerializer(data=request.data)
         related_obj = recipe.shoppingcart_recipe
-        return self.create(request, serializer, related_obj)
+        return self.create(request=request,
+                           serializer=serializer,
+                           related_obj=related_obj)
 
     @shopping_cart.mapping.delete
     def remove_from_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = ShoppingCartSerializer(data=request.data)
         related_obj = recipe.shoppingcart_recipe
-        return self.delete(request, serializer, related_obj)
+        return self.delete(request=request,
+                           serializer=serializer,
+                           related_obj=related_obj)
 
     @action(detail=False,
             methods=['get'],

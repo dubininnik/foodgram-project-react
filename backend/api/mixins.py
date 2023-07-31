@@ -7,8 +7,8 @@ class CreateDeleteMixin:
         serializer = serializer(data=request.data)
         if serializer.is_valid():
             obj = serializer.save()
-            if not related_obj.filter(user=request.user, obj=obj).exists():
-                related_obj.create(user=request.user, obj=obj)
+            _, created = related_obj.get_or_create(user=request.user, obj=obj)
+            if created:
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
             return Response({'errors': 'Объект уже в избранном.'},

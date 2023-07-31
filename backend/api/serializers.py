@@ -68,30 +68,12 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favorite
         fields = ('id', 'user', 'recipe')
 
-    def create(self, validated_data):
-        recipe = self.context['recipe']
-        user = self.context['request'].user
-        favorite, created = Favorite.objects.get_or_create(
-            user=user,
-            recipe=recipe,
-        )
-        return favorite
-
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """[GET] Список содержимого корзины покупок."""
     class Meta:
         model = ShoppingCart
         fields = ('id', 'user', 'recipe')
-
-    def create(self, validated_data):
-        recipe = self.context['recipe']
-        user = self.context['request'].user
-        shopping_cart, created = ShoppingCart.objects.get_or_create(
-            user=user,
-            recipe=recipe,
-        )
-        return shopping_cart
 
 
 class SubscribeAuthorSerializer(serializers.ModelSerializer):

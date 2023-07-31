@@ -4,7 +4,6 @@ from rest_framework.response import Response
 
 class CreateDeleteMixin:
     def create(self, request, serializer, related_obj, *args, **kwargs):
-        serializer = serializer(data=request.data)
         if serializer.is_valid():
             obj = serializer.save()
             _, created = related_obj.get_or_create(user=request.user, obj=obj)
@@ -16,7 +15,6 @@ class CreateDeleteMixin:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, serializer, related_obj, *args, **kwargs):
-        serializer = serializer(data=request.data)
         if serializer.is_valid():
             obj = serializer.save()
             related_obj.filter(user=request.user, obj=obj).delete()

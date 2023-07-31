@@ -178,11 +178,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        ingredient_names = [item['ingredient']['name'] for item in ingredients]
-        if len(ingredient_names) != len(set(ingredient_names)):
-            raise serializers.ValidationError(
-                'Ингредиенты должны быть уникальны.'
-            )
+        ingredient_ids = []
+        for item in ingredients:
+            ingredient_id = item['ingredient'].id
+            if ingredient_id in ingredient_ids:
+                raise serializers.ValidationError(
+                    'Ингредиенты должны быть уникальны.'
+                )
+            ingredient_ids.append(ingredient_id)
         return ingredients
 
     @transaction.atomic

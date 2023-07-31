@@ -189,7 +189,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.get('tags', [])
         ingredients_data = validated_data.get('ingredients', [])
-        ingredient_ids = [ingredient_data['id'] for
+        ingredient_ids = [ingredient_data['pk'] for
                           ingredient_data in ingredients_data]
         ingredients = Ingredient.objects.filter(id__in=ingredient_ids)
         recipe = Recipe.objects.create(
@@ -205,7 +205,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.get('tags', [])
         ingredients_data = validated_data.get('ingredients', [])
-        ingredient_ids = [ingredient_data['id'] for
+        ingredient_ids = [ingredient_data['pk'] for
                           ingredient_data in ingredients_data]
         ingredients = Ingredient.objects.filter(id__in=ingredient_ids)
         instance.tags.clear()
@@ -216,5 +216,5 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['ingredients'] = instance.ingredients.values_list('id', flat=True)
+        data['ingredients'] = instance.ingredients.values_list('pk', flat=True)
         return data

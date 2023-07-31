@@ -2,11 +2,9 @@ from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserViewSet
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .filters import IngredientFilter, RecipeFilter
@@ -40,27 +38,27 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
-        serializer = SubscribeAuthorSerializer(
+        serializer_class = SubscribeAuthorSerializer(
             author,
             data=request.data,
             context={'request': request}
         )
         return self.create(request,
-                           serializer,
-                           related_obj=Subscribe.objects,
+                           serializer_class,
+                           related_field=Subscribe.objects,
                            obj=author)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, pk=None):
         author = get_object_or_404(User, id=pk)
-        serializer = SubscribeAuthorSerializer(
+        serializer_class = SubscribeAuthorSerializer(
             author,
             data=request.data,
             context={'request': request}
         )
         return self.delete(request,
-                           serializer,
-                           related_obj=Subscribe.objects,
+                           serializer_class,
+                           related_field=Subscribe.objects,
                            obj=author)
 
 
@@ -86,68 +84,37 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrAdminOrReadOnly,)
     filterset_class = RecipeFilter
 
-    def get_object(self):
-        queryset = self.get_queryset()
-        obj = queryset.filter(pk=self.kwargs["pk"]).first()
-        if not obj:
-            raise NotFound("Recipe does not exist")
-        return obj
-
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, **kwargs):
-        recipe = self.get_object()
-        if recipe is None:
-            return Response({'error': 'Recipe does not exist'},
-                            status=status.HTTP_404_NOT_FOUND)
-        serializer = FavoriteSerializer(recipe,
-                                        context={'request': request})
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        serializer = FavoriteSerializer(data=request.data)
         related_obj = recipe.favorite_recipe
-        return self.create(request=request,
-                           serializer=serializer,
-                           related_obj=related_obj)
+        return self.create(request, serializer, related_obj)
 
     @favorite.mapping.delete
     def unfavorite(self, request, **kwargs):
-        recipe = self.get_object()
-        if recipe is None:
-            return Response({'error': 'Recipe does not exist'},
-                            status=status.HTTP_404_NOT_FOUND)
-        serializer = FavoriteSerializer(recipe,
-                                        context={'request': request})
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        serializer = FavoriteSerializer(data=request.data)
         related_obj = recipe.favorite_recipe
-        return self.delete(request=request,
-                           serializer=serializer,
-                           related_obj=related_obj)
+        return self.delete(request, serializer, related_obj)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
-        recipe = self.get_object()
-        if recipe is None:
-            return Response({'error': 'Recipe does not exist'},
-                            status=status.HTTP_404_NOT_FOUND)
-        serializer = ShoppingCartSerializer(recipe,
-                                            context={'request': request})
+        recipe = get_object_or_404(Recipe, id=pk)
+        serializer = ShoppingCartSerializer(data=request.data)
         related_obj = recipe.shoppingcart_recipe
-        return self.create(request=request,
-                           serializer=serializer,
-                           related_obj=related_obj)
+        return self.create(request, serializer, related_obj)
 
     @shopping_cart.mapping.delete
     def remove_from_cart(self, request, pk=None):
-        recipe = self.get_object()
-        if recipe is None:
-            return Response({'error': 'Recipe does not exist'},
-                            status=status.HTTP_404_NOT_FOUND)
-        serializer = ShoppingCartSerializer(recipe,
-                                            context={'request': request})
+        recipe = get_object_or_404(Recipe, id=pk)
+        serializer = ShoppingCartSerializer(data=request.data)
         related_obj = recipe.shoppingcart_recipe
-        return self.delete(request=request,
-                           serializer=serializer,
-                           related_obj=related_obj)
+        return self.delete(request, serializer, related_obj)
 
     @action(detail=False,
             methods=['get'],

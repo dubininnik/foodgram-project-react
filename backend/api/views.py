@@ -14,7 +14,8 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeCreateSerializer, ShoppingCartSerializer,
                           SubscribeAuthorSerializer, SubscriptionsSerializer,
                           TagSerializer)
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from recipes.models import (Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import Subscribe, User
 
 
@@ -121,20 +122,22 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,)
             )
     def download_shopping_cart(self, request):
-        ingredients = (
-            RecipeIngredient.objects
-            .filter(recipe__shopping_recipe__user=request.user)
-            .values(name=F('ingredient__name'),
-                    amount_sum=Sum('amount'),
-                    unit=F('ingredient__measurement_unit'))
-        )
-        shopping_cart = []
-        for ingredient in ingredients:
-            shopping_cart.append(
-                f'{ingredient["name"]} - {ingredient["unit"]} '
-                f'{ingredient["amount_sum"]}'
-            )
-        shopping_cart = '\n'.join(shopping_cart)
-        response = HttpResponse(shopping_cart, 'Content-Type: text/plain')
-        response['Content-Disposition'] = 'attachment; filename="wishlist.txt"'
+        shopping_cart_recipes = (ShoppingCart.objects.
+                                 filter(user=request.user).
+                                 values_list('recipe', flat=True))
+        ingredients = (RecipeIngredient.objects
+                       .filter(recipe__in=shopping_cart_recipes)
+                       .values(name=F('ingredient__name'),
+                               unit=F('ingredient__measurement_unit'))
+                       .annotate(amount_sum=Sum('amount'))
+                       )
+        shopping_cart = '\n'.join([
+            f'{ingredient["name"]} - {ingredient["unit"]} '
+            f'{ingredient["amount_sum"]}'
+            for ingredient in ingredients
+        ])
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; '\
+            'filename="shopping-cart.txt"'
+        response.write(shopping_cart)
         return response

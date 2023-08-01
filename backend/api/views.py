@@ -137,7 +137,7 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             for ingredient in ingredients
         ])
         response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; '\
-            'filename="shopping-cart.txt"'
+        response['Content-Disposition'] = 'attachment; ' \
+                                          'filename="shopping-cart.txt"'
         response.write(shopping_cart)
         return response

@@ -36,8 +36,8 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
     @action(detail=True,
             methods=['post'],
             permission_classes=[IsAuthenticated])
-    def subscribe(self, request, pk=None):
-        data = {'user': self.request.user.id, 'author': pk}
+    def subscribe(self, request, id):
+        data = {'user': self.request.user.id, 'author': id}
         return self.create_obj(SubscribeAuthorSerializer, data, request)
 
     @subscribe.mapping.delete

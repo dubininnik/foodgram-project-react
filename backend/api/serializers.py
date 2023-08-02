@@ -142,12 +142,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """[GET, POST, PATCH, DELETE]Чтение, создание,
     изменение, удаление рецепта."""
-    tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all(),
-    )
     author = UserReadSerializer(read_only=True)
-    ingredients = IngredientSerializer(many=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -166,22 +161,24 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         return obj.shoppingcart_recipe.filter(user=user).exists()
 
-    def validate_tags(self, tags):
+    def validate_tags(self, data):
+        tags = self.initial_data.get('tags')
         if not tags:
             raise serializers.ValidationError('Нужно указать минимум 1 тег.')
-        return tags
+        return data
 
-    def validate_ingredients(self, ingredients):
+    def validate_ingredients(self, data):
+        ingredients = self.initial_data.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        ingredient_ids = [item['id'] for item in ingredients]
+        ingredient_ids = [ingredient['id'] for ingredient in ingredients]
         if len(ingredient_ids) != len(set(ingredient_ids)):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'
             )
-        return ingredients
+        return data
 
     def create_and_update_recipe(self, recipe, ingredients):
         recipe_ingredients = []
@@ -217,5 +214,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['ingredients'] = instance.ingredients.values_list('id', flat=True)
+        data['ingredients'] = RecipeIngredientSerializer(
+            instance.recipes.all(), many=True).data
+        data['tags'] = TagSerializer(instance.tags, many=True).data
         return data
+
+    def to_internal_value(self, data):
+        internal_value = super().to_internal_value(data)
+        ingredients = data.get('ingredients')
+        internal_value['ingredients'] = ingredients
+        tags = data.get('tags')
+        internal_value['tags'] = tags
+        return internal_value

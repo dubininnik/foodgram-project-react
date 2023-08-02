@@ -38,13 +38,13 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, pk=None):
         data = {'user': self.request.user.id, 'author': pk}
-        return self.create(SubscribeAuthorSerializer, data, request)
+        return self.create_obj(SubscribeAuthorSerializer, data, request)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
-        return self.delete(SubscribeAuthorSerializer,
-                           user=request.user,
-                           author__id=id)
+        return self.delete_obj(SubscribeAuthorSerializer,
+                               user=request.user,
+                               author__id=id)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -74,22 +74,22 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, pk):
         data = {'user': request.user.id, 'recipe': pk}
-        return self.create(FavoriteSerializer, data, request)
+        return self.create_obj(FavoriteSerializer, data, request)
 
     @favorite.mapping.delete
     def unfavorite(self, request, pk):
-        return self.delete(Favorite, user=request.user, recipe=pk)
+        return self.delete_obj(Favorite, user=request.user, recipe=pk)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk):
         data = {'user': request.user.id, 'recipe': pk}
-        return self.create(ShoppingCartSerializer, data, pk)
+        return self.create_obj(ShoppingCartSerializer, data, pk)
 
     @shopping_cart.mapping.delete
     def remove_from_cart(self, request, pk):
-        return self.delete(ShoppingCart, user=request.user, recipe=pk)
+        return self.delete_obj(ShoppingCart, user=request.user, recipe=pk)
 
     @action(detail=False,
             methods=['get'],

@@ -22,11 +22,15 @@ MIN_INGREDIENT_AMOUNT = 1
 
 MAX_INGREDIENT_AMOUNT = 500
 
-INAPPROPRIATE_USERNAME = 'admin,root,superuser,administrator,moderator'
+INAPPROPRIATE_USERNAMES = ['admin',
+                           'root',
+                           'superuser',
+                           'administrator',
+                           'moderator']
 
 USER_FIELD_LEN = 150
 
-PATTERN = r'^[a-zA-Z0-9_-]+$'
+USERNAME_PATTERN = r'^[a-zA-Z0-9_-]+$'
 
 HEX_PATTERN = r'^#([a-fA-F0-9]{6})'
 

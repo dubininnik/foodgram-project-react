@@ -1,18 +1,15 @@
-from rest_framework import mixins, status
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.response import Response
 
 
-class CreateDeleteMixin(mixins.CreateModelMixin, mixins.DestroyModelMixin):
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+class CreateDeleteMixin:
+    def create(self, serializer_class, data, request):
+        serializer = serializer_class(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data,
-                        status=status.HTTP_201_CREATED,
-                        headers=headers)
+        serializer.save()
+        return Response(status=status.HTTP_201_CREATED)
 
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
+    def delete(self, model, **kwargs):
+        get_object_or_404(model, **kwargs).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

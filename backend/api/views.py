@@ -1,6 +1,5 @@
 from django.db.models import F, Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserViewSet
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
@@ -14,9 +13,9 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeCreateSerializer, ShoppingCartSerializer,
                           SubscribeAuthorSerializer, SubscriptionsSerializer,
                           TagSerializer)
-from recipes.models import (Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
-from users.models import Subscribe, User
+from recipes.models import (Favorite, Ingredient, Recipe,
+                            RecipeIngredient, ShoppingCart, Tag)
+from users.models import User
 
 
 class UserViewSet(CreateDeleteMixin, DjoserViewSet):
@@ -38,29 +37,14 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
             methods=['post'],
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, pk=None):
-        author = get_object_or_404(User, id=pk)
-        serializer_class = SubscribeAuthorSerializer(
-            author,
-            data=request.data,
-            context={'request': request}
-        )
-        return self.create(request,
-                           serializer_class,
-                           related_field=Subscribe.objects,
-                           obj=author)
+        data = {'user': self.request.user.id, 'author': pk}
+        return self.create(SubscribeAuthorSerializer, data, request)
 
     @subscribe.mapping.delete
-    def unsubscribe(self, request, pk=None):
-        author = get_object_or_404(User, id=pk)
-        serializer_class = SubscribeAuthorSerializer(
-            author,
-            data=request.data,
-            context={'request': request}
-        )
-        return self.delete(request,
-                           serializer_class,
-                           related_field=Subscribe.objects,
-                           obj=author)
+    def unsubscribe(self, request, id):
+        return self.delete(SubscribeAuthorSerializer,
+                           user=request.user,
+                           author__id=id)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -88,34 +72,24 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
-    def favorite(self, request, **kwargs):
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer = FavoriteSerializer(data=request.data)
-        related_obj = recipe.favorite_recipe
-        return self.create(request, serializer, related_obj)
+    def favorite(self, request, pk):
+        data = {'user': request.user.id, 'recipe': pk}
+        return self.create(FavoriteSerializer, data, request)
 
     @favorite.mapping.delete
-    def unfavorite(self, request, **kwargs):
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
-        serializer = FavoriteSerializer(data=request.data)
-        related_obj = recipe.favorite_recipe
-        return self.delete(request, serializer, related_obj)
+    def unfavorite(self, request, pk):
+        return self.delete(Favorite, user=request.user, recipe=pk)
 
     @action(detail=True,
             methods=['post'],
             permission_classes=(IsAuthenticated,))
-    def shopping_cart(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = ShoppingCartSerializer(data=request.data)
-        related_obj = recipe.shoppingcart_recipe
-        return self.create(request, serializer, related_obj)
+    def shopping_cart(self, request, pk):
+        data = {'user': request.user.id, 'recipe': pk}
+        return self.create(ShoppingCartSerializer, data, pk)
 
     @shopping_cart.mapping.delete
-    def remove_from_cart(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = ShoppingCartSerializer(data=request.data)
-        related_obj = recipe.shoppingcart_recipe
-        return self.delete(request, serializer, related_obj)
+    def remove_from_cart(self, request, pk):
+        return self.delete(ShoppingCart, user=request.user, recipe=pk)
 
     @action(detail=False,
             methods=['get'],

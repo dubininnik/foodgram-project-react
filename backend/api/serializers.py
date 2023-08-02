@@ -95,11 +95,11 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
                   'last_name', 'recipes', 'recipes_count')
 
     def validate(self, obj):
-        user = obj.get('user')
-        author = obj.get('author')
-        if user == author:
+        request = self.context['request']
+        author = obj.get['author']
+        if request.user == author:
             raise serializers.ValidationError('Нельзя подписаться на себя')
-        if obj.subscriber.filter(user=user).exists():
+        if obj.subscriber.filter(user=request.user).exists():
             raise serializers.ValidationError('Подписка уже оформлена')
         return obj
 

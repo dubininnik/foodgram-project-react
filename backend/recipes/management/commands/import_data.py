@@ -55,4 +55,15 @@ class Command(BaseCommand):
                     },
                 )
                 token, created = Token.objects.update_or_create(user=user)
+            user_review, created = User.objects.update_or_create(
+                email='review@review.com',
+                defaults={
+                    'email': 'review@review.com',
+                    'username': 'review',
+                    'first_name': 'Артем',
+                    'last_name': 'Нечай',
+                    'password': 'reviewadmin1',
+                },
+            )
+            token, created = Token.objects.update_or_create(user=user_review)
         self.stdout.write(self.style.SUCCESS('Данные успешно импортированы.'))

@@ -11,11 +11,11 @@ from .mixins import CreateDeleteMixin
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeCreateSerializer, ShoppingCartSerializer,
-                          SubscribeAuthorSerializer, SubscriptionsSerializer,
+                          SubscribeAuthorSerializer, SubscriptionSerializer,
                           TagSerializer)
 from recipes.models import (Favorite, Ingredient, Recipe,
                             RecipeIngredient, ShoppingCart, Tag)
-from users.models import User
+from users.models import Subscribe, User
 
 
 class UserViewSet(CreateDeleteMixin, DjoserViewSet):
@@ -28,9 +28,11 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
     def subscriptions(self, request):
         queryset = User.objects.filter(subscribing__user=request.user)
         page = self.paginate_queryset(queryset)
-        serializer = SubscriptionsSerializer(page,
-                                             many=True,
-                                             context={'request': request})
+        serializer = SubscriptionSerializer(
+            [subscription.author for subscription in page],
+            many=True,
+            context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True,
@@ -42,7 +44,7 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
-        return self.delete_obj(SubscribeAuthorSerializer,
+        return self.delete_obj(Subscribe,
                                user=request.user,
                                author__id=id)
 
@@ -52,7 +54,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = (IngredientFilter,)
-    search_fields = ('^name',)  # Работает только так :(
     permission_classes = (AllowAny, IsAuthorOrAdminOrReadOnly)
 
 

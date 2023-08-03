@@ -22,11 +22,11 @@ MIN_INGREDIENT_AMOUNT = 1
 
 MAX_INGREDIENT_AMOUNT = 500
 
-INAPPROPRIATE_USERNAMES = ['admin',
+INAPPROPRIATE_USERNAMES = {'admin',
                            'root',
                            'superuser',
                            'administrator',
-                           'moderator']
+                           'moderator'}
 
 USER_FIELD_LEN = 150
 

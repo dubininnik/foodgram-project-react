@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from recipes.models import (Favorite, Ingredient, ShoppingCart,
                             Recipe, RecipeIngredient, Tag)
-from users.models import User
+from users.models import Subscribe, User
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -27,19 +27,12 @@ class UserReadSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if not request.user.is_authenticated:
+        if request.user.is_anonymous:
             return False
-        return obj.subscriber.filter(user=request.user).exists()
+        return obj.subscriber.filter(author=obj).exists()
 
 
-class RecipeSerializer(serializers.ModelSerializer):
-    """[GET] Список рецептов без ингредиентов."""
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-
-class SubscriptionsSerializer(UserReadSerializer):
+class SubscriptionSerializer(UserReadSerializer):
     """[GET] Список авторов на которых подписан пользователь."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(source='recipes_count')
@@ -62,6 +55,32 @@ class SubscriptionsSerializer(UserReadSerializer):
         return serializer.data
 
 
+class SubscribeAuthorSerializer(serializers.ModelSerializer):
+    """[POST] Подписка на авторов."""
+    class Meta:
+        model = Subscribe
+        fields = (
+            'user',
+            'author',
+        )
+
+    def validate(self, obj):
+        user = obj.get['user']
+        author = obj.get['author']
+        if user == author:
+            raise serializers.ValidationError('Нельзя подписаться на себя')
+        if Subscribe.objects.filter(user=user, author=author).exists():
+            raise serializers.ValidationError('Подписка уже оформлена')
+        return obj
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """[GET] Список рецептов без ингредиентов."""
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class FavoriteSerializer(serializers.ModelSerializer):
     """[GET] Список избранного."""
     class Meta:
@@ -74,43 +93,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
         fields = ('id', 'user', 'recipe')
-
-
-class SubscribeAuthorSerializer(serializers.ModelSerializer):
-    """[POST, DELETE] Подписка и отписка на авторов."""
-    email = serializers.ReadOnlyField(source='author.email')
-    id = serializers.ReadOnlyField(source='author.id')
-    username = serializers.ReadOnlyField(source='author.username')
-    first_name = serializers.ReadOnlyField(source='author.first_name')
-    last_name = serializers.ReadOnlyField(source='author.last_name')
-    recipes = RecipeSerializer(
-        many=True,
-        read_only=True
-    )
-    recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'recipes', 'recipes_count')
-
-    def validate(self, obj):
-        request = self.context['request']
-        author = obj.get['author']
-        if request.user == author:
-            raise serializers.ValidationError('Нельзя подписаться на себя')
-        if obj.subscriber.filter(user=request.user).exists():
-            raise serializers.ValidationError('Подписка уже оформлена')
-        return obj
-
-    def get_is_subscribed(self, obj):
-        return (self.context.get('request').user.is_authenticated
-                and obj.subscriber.filter(
-                    user=self.context['request'].user).exists()
-                )
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -155,11 +137,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        return obj.favorite_recipe.filter(user=user).exists()
+        return Favorite.objects.filter(user=user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        return obj.shoppingcart_recipe.filter(user=user).exists()
+        return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
 
     def validate_tags(self, data):
         tags = self.initial_data.get('tags')

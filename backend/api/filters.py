@@ -17,7 +17,7 @@ class RecipeFilter(FilterSet):
     )
     is_favorited = filters.BooleanFilter(method='get_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
-        method='get_is_shopping_cart'
+        method='get_is_in_shopping_cart'
     )
 
     class Meta:
@@ -39,9 +39,10 @@ class RecipeFilter(FilterSet):
     def get_is_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
         if value and user.is_authenticated:
-            return queryset.filter(shopping_recipe__user=user)
+            return queryset.filter(shoppingcart_recipe__user=user)
         return queryset
 
 
 class IngredientFilter(SearchFilter):
     search_param = 'name'
+    search_fields = ('^name',)

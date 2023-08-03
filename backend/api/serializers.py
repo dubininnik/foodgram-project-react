@@ -65,8 +65,8 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, obj):
-        user = obj.get['user']
-        author = obj.get['author']
+        user = self.context['request'].user
+        author = obj['author']
         if user == author:
             raise serializers.ValidationError('Нельзя подписаться на себя')
         if Subscribe.objects.filter(user=user, author=author).exists():

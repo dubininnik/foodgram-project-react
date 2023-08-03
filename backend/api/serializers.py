@@ -69,7 +69,7 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
         author = obj['author']
         if user == author:
             raise serializers.ValidationError('Нельзя подписаться на себя')
-        if obj.subscriber.filter(user=user).exists():
+        if Subscribe.objects.filter(user=user, author=author).exists():
             raise serializers.ValidationError('Подписка уже оформлена')
         return obj
 

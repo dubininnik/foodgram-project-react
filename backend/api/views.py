@@ -30,7 +30,7 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
         queryset = User.objects.filter(subscribing__user=request.user)
         page = self.paginate_queryset(queryset)
         serializer = SubscriptionSerializer(
-            [subscription.author for subscription in page],
+            page,
             many=True,
             context={'request': request}
         )

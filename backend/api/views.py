@@ -1,7 +1,8 @@
 from django.db.models import F, Sum
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
-from rest_framework import filters, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -53,7 +54,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = (IngredientFilter,)
+    filterset_class = IngredientFilter
     permission_classes = (AllowAny, IsAuthorOrAdminOrReadOnly)
 
 
@@ -66,9 +67,9 @@ class TagViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeCreateSerializer
-    filter_backends = (filters.SearchFilter,)
-    permission_classes = (IsAuthorOrAdminOrReadOnly,)
     filterset_class = RecipeFilter
+    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
 
     @action(detail=True,
             methods=['post'],
@@ -105,7 +106,7 @@ class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
                        .values(name=F('ingredient__name'),
                                unit=F('ingredient__measurement_unit'))
                        .annotate(amount_sum=Sum('amount'))
-                       )
+                       ).order_by('name')
         shopping_cart = '\n'.join([
             f'{ingredient["name"]} - {ingredient["unit"]} '
             f'{ingredient["amount_sum"]}'

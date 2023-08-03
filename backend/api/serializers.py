@@ -137,11 +137,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        return Favorite.objects.filter(user=user, recipe=obj).exists()
+        return obj.Favorite_recipe.filter(user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
+        return obj.ShoppingCart_recipe.filter(user=user).exists()
 
     def validate_tags(self, data):
         tags = self.initial_data.get('tags')

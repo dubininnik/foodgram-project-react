@@ -62,7 +62,7 @@ class Command(BaseCommand):
                     'username': 'review',
                     'first_name': 'Артем',
                     'last_name': 'Нечай',
-                    'password': 'reviewadmin1',
+                    'password': make_password('reviewadmin1'),
                 },
             )
             token, created = Token.objects.update_or_create(user=user_review)

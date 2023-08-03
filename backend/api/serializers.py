@@ -35,7 +35,7 @@ class UserReadSerializer(UserSerializer):
 class SubscriptionSerializer(UserReadSerializer):
     """[GET] Список авторов на которых подписан пользователь."""
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(source='recipes_count')
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -69,7 +69,7 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
         author = obj['author']
         if user == author:
             raise serializers.ValidationError('Нельзя подписаться на себя')
-        if Subscribe.objects.filter(user=user, author=author).exists():
+        if obj.subscriber.filter(user=user).exists():
             raise serializers.ValidationError('Подписка уже оформлена')
         return obj
 

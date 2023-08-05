@@ -3,6 +3,23 @@ from django.contrib import admin
 from . import models
 
 
+class RecipeIngredientInline(admin.TabularInline):
+    model = models.RecipeIngredient
+    extra = 1
+
+
+@admin.register(models.Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'author', 'text', 'favorite_count')
+    list_filter = ('author', 'name', 'tags')
+    readonly_fields = ('favorite_count',)
+    inlines = [RecipeIngredientInline]
+
+    def favorite_count(self, recipe):
+        return recipe.favorite_recipe.count()
+    favorite_count.admin_order_field = 'favorite_recipe__count'
+
+
 @admin.register(models.Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
@@ -15,17 +32,6 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
     list_filter = ('name', 'color')
     search_fields = ('name', 'color')
-
-
-@admin.register(models.Recipe)
-class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'text', 'favorite_count')
-    list_filter = ('author', 'name', 'tags')
-    readonly_fields = ('favorite_count',)
-
-    def favorite_count(self, recipe):
-        return recipe.favorite_recipe.count()
-    favorite_count.admin_order_field = 'favorite_recipe__count'
 
 
 @admin.register(models.RecipeIngredient)

@@ -91,7 +91,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-if os.getenv('POSTGRES_ON', False) == 'True':
+if os.getenv('POSTGRES_ON', False).lower() == 'true':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

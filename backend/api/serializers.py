@@ -37,7 +37,6 @@ class SubscriptionSerializer(UserReadSerializer):
     """[GET] Список авторов на которых подписан пользователь."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
-    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User

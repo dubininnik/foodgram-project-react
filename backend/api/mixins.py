@@ -20,7 +20,10 @@ class CreateDeleteMixin:
         serializer.is_valid(raise_exception=True)
         serializer.save()
         object = get_object_or_404(model, pk=pk)
-        serializer_data = serializer_return(object).data
+        serializer_data = serializer_return(
+            object,
+            context={'request': request}
+        ).data
         return Response(
             data=serializer_data,
             status=status.HTTP_201_CREATED

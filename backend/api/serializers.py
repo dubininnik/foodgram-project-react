@@ -46,13 +46,16 @@ class SubscriptionSerializer(UserReadSerializer):
         return obj.recipes.count()
 
     def get_recipes(self, obj):
-        limit = self.context.get['request'].query_params.get(
-            'recipes_limit'
-        )
+        request = self.context.get('request')
+        limit = request.query_params.get('recipes_limit')
         recipes = obj.recipes.all()
         if limit:
             recipes = recipes[:int(limit)]
-        serializer = RecipeSerializer(recipes, many=True, read_only=True)
+        serializer = RecipeSerializer(
+            recipes,
+            many=True,
+            context={'request': request}
+        )
         return serializer.data
 
 
@@ -69,9 +72,13 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         author = obj['author']
         if user == author:
-            raise serializers.ValidationError('Нельзя подписаться на себя')
+            raise serializers.ValidationError(
+                'Нельзя подписаться на себя.'
+            )
         if Subscribe.objects.filter(user=user, author=author).exists():
-            raise serializers.ValidationError('Подписка уже оформлена')
+            raise serializers.ValidationError(
+                'Подписка уже оформлена.'
+            )
         return obj
 
 

@@ -92,7 +92,7 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """[GET] Список рецептов без ингредиентов."""
+    """[GET] Короткий список рецептов без ингредиентов."""
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')

@@ -22,6 +22,9 @@ class UserAdmin(admin.ModelAdmin):
     list_editable = (
         'is_active',
         'password',
+        'email',
+        'first_name',
+        'last_name',
     )
     list_filter = (
         'username',

@@ -20,6 +20,7 @@ from users.models import Subscribe, User
 
 
 class UserViewSet(CreateDeleteMixin, DjoserViewSet):
+    """Вьюсет пользовательских профилей."""
     queryset = User.objects.all()
     permission_classes = (AllowAny, IsAuthorOrAdminOrReadOnly)
 
@@ -55,6 +56,7 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
+    """Вьюсет ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
@@ -63,12 +65,14 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
 
 class TagViewSet(ReadOnlyModelViewSet):
+    """Вьюсет тэгов к рецептам."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
 
 
 class RecipeViewSet(CreateDeleteMixin, viewsets.ModelViewSet):
+    """Вьюсет рецептов и функционала вокруг них."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeCreateSerializer
     filterset_class = RecipeFilter

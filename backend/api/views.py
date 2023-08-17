@@ -39,19 +39,19 @@ class UserViewSet(CreateDeleteMixin, DjoserViewSet):
     @action(detail=True,
             methods=['post'],
             permission_classes=[IsAuthenticated])
-    def subscribe(self, request, pk):
+    def subscribe(self, request, id):
         return self.create_obj(
             SubscribeAuthorSerializer,
             SubscriptionSerializer,
             User,
             request,
-            pk)
+            pk=id)
 
     @subscribe.mapping.delete
-    def unsubscribe(self, request, pk):
+    def unsubscribe(self, request, id):
         return self.delete_obj(Subscribe,
                                user=request.user,
-                               author__id=pk)
+                               author__id=id)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):

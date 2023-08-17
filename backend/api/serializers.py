@@ -29,7 +29,7 @@ class UserReadSerializer(UserSerializer):
         request = self.context.get('request')
         return (
             request and request.user.is_authenticated
-            and obj.subscribing.filter(author=obj).exists()
+            and obj.subscriber.filter(author=obj).exists()
         )
 
 
@@ -37,6 +37,7 @@ class SubscriptionSerializer(UserReadSerializer):
     """[GET] Список авторов на которых подписан пользователь."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -63,7 +64,7 @@ class SubscriptionSerializer(UserReadSerializer):
         request = self.context.get('request')
         return (
             request and request.user.is_authenticated
-            and obj.subscribing.filter(author=obj).exists()
+            and obj.subscriber.filter(author=obj).exists()
         )
 
 

@@ -22,14 +22,15 @@ class UserReadSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name',
+        fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'password', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if request.user.is_anonymous:
-            return False
-        return obj.subscriber.filter(author=obj).exists()
+        return (
+            request and request.user.is_authenticated
+            and obj.subscribing.filter(author=obj).exists()
+        )
 
 
 class SubscriptionSerializer(UserReadSerializer):
@@ -57,6 +58,13 @@ class SubscriptionSerializer(UserReadSerializer):
             context={'request': request}
         )
         return serializer.data
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        return (
+            request and request.user.is_authenticated
+            and obj.subscribing.filter(author=obj).exists()
+        )
 
 
 class SubscribeAuthorSerializer(serializers.ModelSerializer):
